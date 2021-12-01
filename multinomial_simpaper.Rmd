@@ -1,0 +1,67 @@
+---
+title: "Limiting behavioral choice to 2 options reduces inferential power in idenitfying
+  frequency-dependent learning (towards a $K$-action puzzlebox)"
+author: "Brendan J Barrett"
+date: "12/1/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+## Two action puzzle boxes
+all of whiten shit, lucy's stuff, erica van de waal
+
+## Frequency dependent learning
+why its adaptive
+
+why its of interest
+
+studies of it
+
+## Mutlinomial data is empirical studies of social learning
+theoretical stuff and thet moragan paper
+
+experiments of me and charlotte, anne baby names paper
+
+sloanea
+
+other studies that have dropped it-- chimp hand clasping and susan paper, baby names data set
+
+
+
+## Varitation and Information in studies of social learning
+variation in a population is necessary for change to occur. ignoring it realizes
+
+variation is linked to entropy and info
+
+in a binomial distribution variation is $(1-p)*p$ which has the highest information
+
+Studies with high variance and entropy provide more information
+
+Information can help us identify plausible causal mechanisms. or more reliable estimate target parameters of interest.
+
+## when we can't add individuals or samples, add options
+
+# Methods
+
+## Simulate Data
+
+### vary F
+
+### vary K
+
+### vary N
+
+
+## Statistical Model
+
+### Definition 
+
+### Prior Choice
+
+# Results
+
