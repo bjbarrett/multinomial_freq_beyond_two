@@ -1,11 +1,11 @@
 library(rethinking)
 library(rstan)
-options(mc.cores=4) 
-datalist <- list("post_samples" = f_samples, 
-                 "f" = F[f_i], 
-                 "n" = N[n_i],
-                 "k" = K[k_i]
-)   
+options(mc.cores=3) 
+# datalist <- list("post_samples" = f_samples, 
+#                  "f" = F[f_i], 
+#                  "n" = N[n_i],
+#                  "k" = K[k_i]
+# )   
 
 ##prior predictive simulation of mode; for f
 # rln <- rlnorm(1000, meanlog = 0, sdlog = 0.8) 
@@ -34,7 +34,7 @@ datalist <- list("post_samples" = f_samples,
   #gnomes is 2,  4 , 6 , 8
   ##simulate sl data
 N <- c(5, 10 , 20 , 50 )  ## pop size
-F <- c( 1 , 2) ## strength of frequency dependence
+F <- c( 2) ## strength of frequency dependence
 K <- c(2,3,4) ## number of options
 n_sims <- 50
 #stat sim and model
@@ -48,10 +48,7 @@ n_chains=3
       # k_i <- 2
       f_samples <- array(data=NA , c(n_iter*n_chains*0.5,n_sims) )
       
-      
       ###blank list for data storage
-      c("V1", "V2", "V3", "V4", "V5", "f" , "n" , "k" )
-      
       for (sim in 1:n_sims){
         tweak <- 0.05
         si_freq <- rep(1/K[k_i],K[k_i])
