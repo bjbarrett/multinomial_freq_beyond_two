@@ -13,7 +13,7 @@ model {
     real PrS;           // social learning Pr
     vector[K] s_temp;   // social learning temp
     //prior       
-    f ~ lognormal(0,1);
+    f ~ lognormal(1,1);
     
 
     for ( i in 1:N ) {
