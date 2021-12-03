@@ -7,25 +7,24 @@ options(mc.cores=3)
 #                  "k" = K[k_i]
 # )   
 
-##prior predictive simulation of mode; for f
-# rln <- rlnorm(1000, meanlog = 0, sdlog = 0.8) 
-# curve(dlnorm(x, meanlog=0, sdlog=1), from=0, to=10 , add=TRUE)
-# median(rln)
-# N1<- seq(from=0 , to=100 , by=1)
-# N2<- 100-N1
-# FreqN1B4 <- N1/(N1+N2)
-# FreqN1After <- rep (0,100)
-# plot(FreqN1B4,FreqN1B4 , ylim=c(0,1) , xlim=c(0,1) , ylab="frequency of trait after social learning" , xlab="frequency of trait before social learning",type="n" , bty="n" , cex.lab=1.5)
-# for(i in 1:length(rln) ){
-#   FreqN1After <- N1^rln[i]/(N1^rln[i]+N2^rln[i])  
-#   lines( FreqN1B4,FreqN1After,  col=col.alpha( "darksalmon" ,  alpha=0.05  )  , lwd=1) 
-# }
-#   FreqN1After <- N1^3/(N1^3+N2^3)  
-#   lines( FreqN1B4,FreqN1After,  col=col.alpha( "red"   )  , lwd=3) 
-#   FreqN1After <- N1^(1/3)/(N1^(1/3)+N2^(1/3))  
-#   lines( FreqN1B4,FreqN1After,  col=col.alpha( "red"   )  , lwd=3) 
-# 
-# abline(a=0 , b=1 , lty=2)
+#prior predictive simulation of mode; for f
+rln <- rlnorm(1000, meanlog = 0, sdlog = 1)
+median(rln)
+N1<- seq(from=0 , to=100 , by=1)
+N2<- 100-N1
+FreqN1B4 <- N1/(N1+N2)
+FreqN1After <- rep (0,100)
+plot(FreqN1B4,FreqN1B4 , ylim=c(0,1) , xlim=c(0,1) , ylab="frequency of trait after social learning" , xlab="frequency of trait before social learning",type="n" , bty="n" , cex.lab=1.5)
+for(i in 1:length(rln) ){
+  FreqN1After <- N1^rln[i]/(N1^rln[i]+N2^rln[i])
+  lines( FreqN1B4,FreqN1After,  col=col.alpha( "darksalmon" ,  alpha=0.05  )  , lwd=1)
+}
+  FreqN1After <- N1^3/(N1^3+N2^3)
+  lines( FreqN1B4,FreqN1After,  col=col.alpha( "red"   )  , lwd=3)
+  FreqN1After <- N1^(1/3)/(N1^(1/3)+N2^(1/3))
+  lines( FreqN1B4,FreqN1After,  col=col.alpha( "red"   )  , lwd=3)
+
+abline(a=0 , b=1 , lty=2)
 
 ##begin sims
 
@@ -33,10 +32,10 @@ options(mc.cores=3)
   #fix f to 1/3 , 1 and 3
   #gnomes is 2,  4 , 6 , 8
   ##simulate sl data
-N <- c(10 , 20 , 50 , 100 , 200)  ## pop size
-F <- c( 1/3 , 1 , 3 ) ## strength of frequency dependence
-K <- c(2,3,4) ## number of options
-n_sims <- 50
+N <- c(10 , 20 , 50 , 100 , 200 , 500)  ## pop size
+F <- c( 3 ) ## strength of frequency dependence
+K <- c(2,3,4,5) ## number of options
+n_sims <- 1
 #stat sim and model
 n_iter=2000
 n_chains=3
@@ -77,15 +76,15 @@ for (f_i in 1:length(F)){
         )
         
 
-        fit= stan( file = 'freq_dep_log.stan',
+        fit= stan( file = 'freq_dep.stan',
                     data = data ,
                     iter = n_iter,
                     chains=n_chains,
                     cores=n_chains,
                     control=list(adapt_delta=0.999) ,
-                    pars=c( "f" ,"log_f"),
+                    pars=c( "f" ),
                     refresh=100,
-                    init=0,
+                    init=1,
                     seed=122021
         )
 
@@ -107,9 +106,10 @@ for (f_i in 1:length(F)){
      } #f_i
      #save(master , file="mulinom_sim.rds")
    } #n_i
+  write.csv(master, paste0("conform_sims_fits_",K[k_i],".csv"))
 } #k_i
+write.csv(master, paste0("conform_sims_fits_all.csv"))
 
-write.csv(master, "conform_sims_fis3_log.csv")
 
 str(master)
 
