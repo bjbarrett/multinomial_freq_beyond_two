@@ -8,7 +8,7 @@ nsims <- ncol(master2) - 3 #number of sims
 N <- sort(unique(master2$n))  ## pop size vector from data
 F <-sort(unique(master2$f))  ## strength of frequency dependence from data
 K <- sort(unique(master2$k))  ## number of options from data
-mypalette<-brewer.pal(3,"Dark2")
+mypalette<-brewer.pal(max(K),"Dark2")
 
 plot.new()
 par( mfrow = c( length(N) , length(K) ) ) 
