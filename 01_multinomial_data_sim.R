@@ -35,7 +35,7 @@ abline(a=0 , b=1 , lty=2)
 N <- c(10 , 20 , 50 , 100 , 200 , 500)  ## pop size
 F <- c( 3 ) ## strength of frequency dependence
 K <- c(2,3,4,5) ## number of options
-n_sims <- 1
+n_sims <- 30
 #stat sim and model
 n_iter=2000
 n_chains=3
