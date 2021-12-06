@@ -33,30 +33,23 @@ abline(a=0 , b=1 , lty=2)
   #fix f to 1/3 , 1 and 3
   #gnomes is 2,  4 , 6 , 8
   ##simulate sl data
-N <- c(10 , 20 , 50 , 100 , 200 , 500)  ## pop size
-F <- c( 3 ) ## strength of frequency dependence
+N <- c(10 , 25 , 50 , 100 , 250 , 500 , 1000)  ## pop size
+N <- c(1000)
+F <- c( 1/3 ) ## strength of frequency dependence
 K <- c(2,3,4,5) ## number of options
-n_sims <- 30
+n_sims <- 50
 #stat sim and model
-n_iter=2000
+n_iter=1600
 n_chains=3
 for (f_i in 1:length(F)){
  for (n_i in 1:length(N)){
    for (k_i in 1:length(K)){
-      # f_i <- 3
-      #n_i <- 3
-      # k_i <- 2
       f_samples <- array(data=NA , c(n_iter*n_chains*0.5,n_sims) )
       
       ###blank list for data storage
       for (sim in 1:n_sims){
-        # tweak <- 0.05
-        # si_freq <- rep(1/K[k_i],K[k_i])
-        # si_freq[1] <- si_freq[1] + tweak
-        # si_freq[-1] <-  si_freq[-1] - tweak/(K[k_i]-1)
         si_freq <- rdirichlet(1.2, alpha=rep(1,K[k_i]))
         si_freq[K[k_i]+1:max(K)] <- NA
-        #if( sum(si_freq[1:k_i])!=1){ print("FUCCCCKKKK, NO SUM TO ONE, DANGER!!!") }  #flag bad initial probs
         s_temp <- rep(0,K[k_i])
         dsim <- data.frame(id=0 , choice=0 , s1=0 , s2=0 , s3=0 , s4=0, s5=0 , sim=0 , f=0 ,n=0 , k=0) #may have to modify if K gets bigger
         therow <- 1
@@ -100,17 +93,18 @@ for (f_i in 1:length(F)){
       f_samples2$f= F[f_i]
       f_samples2$n= N[n_i]
       f_samples2$k= K[k_i]
-      if(n_i==1 & f_i==1 & k_i==1){
+      #if(n_i==1 & f_i==1 & k_i==1){
         master <- f_samples2 
-      }else{
-        master <- rbind(master,f_samples2) 
-      }
+     # }else{
+      #  master <- rbind(master,f_samples2) 
+    #  }
+        write.csv(master, paste0("f_",F[f_i],"_n_",N[n_i],"_k_",K[k_i],"_sims_fits.csv"))
+        
      } #f_i
-     #save(master , file="mulinom_sim.rds")
-   } #n_i
-  write.csv(master, paste0("f_",F[f_i],"_k_",K[k_i],"_sims_fits.csv"))
+ } #n_i
+  #write.csv(master, paste0("f_",F[f_i],"_k_",K[k_i],"_sims_fits.csv"))
 } #k_i
-write.csv(master, paste0("f_",F[f_i],"_sims_fits.csv"))
+#write.csv(master, paste0("f_",F[f_i],"_sims_fits.csv"))
 
 
 str(master)
