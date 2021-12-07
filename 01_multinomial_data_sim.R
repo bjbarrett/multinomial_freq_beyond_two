@@ -33,10 +33,12 @@ abline(a=0 , b=1 , lty=2)
   #fix f to 1/3 , 1 and 3
   #gnomes is 2,  4 , 6 , 8
   ##simulate sl data
-N <- c(10 , 25 , 50 , 100 , 250 , 500 , 1000)  ## pop size
-N <- c(1000)
+N <- c(25 , 50 , 100 , 250 , 500 , 1000)  ## pop size
 F <- c( 1/3 ) ## strength of frequency dependence
 K <- c(2,3,4,5) ## number of options
+K <- 5
+N <- 1000
+
 n_sims <- 50
 #stat sim and model
 n_iter=1600
@@ -70,7 +72,7 @@ for (f_i in 1:length(F)){
           s= cbind( dsim[,3:( K[k_i]+2) ] ) 
         )
         
-        file_name <- '/Users/sifaka/Documents/multinomial_freq_beyond_two/freq_dep.stan'
+        file_name <- 'freq_dep.stan'
         fit= stan( file = file_name,
                     data = data ,
                     iter = n_iter,
