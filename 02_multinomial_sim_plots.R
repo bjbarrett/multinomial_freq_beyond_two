@@ -6,7 +6,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ####f is 3
-mydir = "/Users/sifaka/Documents/multinomial_freq_beyond_two/model_output/f_3"
+#mydir = "/Users/sifaka/Documents/multinomial_freq_beyond_two/model_output/f_3"
+mydir = "/Users/sifaka/Downloads/rstudio-export-log/f_3"
 myfiles = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
 d3 = ldply(myfiles, read_csv)
 
@@ -63,6 +64,8 @@ mtext(side=1 ,"strength of frequency depndence", outer = TRUE, line=2.2 )
 
 ####f is 1
 mydir = "/Users/sifaka/Documents/multinomial_freq_beyond_two/model_output/f_1"
+mydir = "/Users/sifaka/Downloads/rstudio-export-log/f_1"
+
 myfiles = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
 d3 = ldply(myfiles, read_csv)
 
@@ -120,6 +123,8 @@ mtext(side=1 ,"strength of frequency depndence", outer = TRUE, line=2.2 )
 
 ####f is 0.33
 mydir = "/Users/sifaka/Documents/multinomial_freq_beyond_two/model_output/f_0.33"
+mydir = "/Users/sifaka/Downloads/rstudio-export-log/f_0.33"
+
 myfiles = list.files(path=mydir, pattern="*.csv", full.names=TRUE)
 d3 = ldply(myfiles, read_csv)
 
