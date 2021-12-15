@@ -1,18 +1,15 @@
 library(rethinking)
 library(RColorBrewer)
 knitr::opts_chunk$set(echo = TRUE)
-master <- read.csv("f_3_n_10_20_50_nsims_30_fits.csv") #load data
-master1 <- read.csv("f_3_n_100_200_500_nsims_30_fits.csv") #load data
-master2 <- rbind(master,master1)
+master2 <- read.csv("f_0.33_n_1000_nsims_50_fits.csv")
 master2 <- master2[,-1] # get rid of bs first column
-nsims <- ncol(master2) - 3 #number of sims 
+nsims <- ncol(master2) - 3 #number of sims
 
+#PlotDatShit <- function(master2){
 N <- sort(unique(master2$n))  ## pop size vector from data
 F <-sort(unique(master2$f))  ## strength of frequency dependence from data
 K <- sort(unique(master2$k))  ## number of options from data
 mypalette<-brewer.pal(max(K),"Dark2")
-
-plot.new()
 par( mfrow = c( length(N) , length(K) ) ) 
 par(mar=c(0,0,0,0)+.1)
 for (f_i in 1:length(F)){
@@ -24,9 +21,10 @@ for (f_i in 1:length(F)){
       ylimz <- 3*max(density(zm)$y)
       index <- which(z$n==N[n_i]) #get rows for relevant n in loop
       textz <- paste("k =",K[k_i],"; n =",N[n_i],"; f =",F[f_i] )   #title of plots
-      dens( zm[index,] , col=mypalette[k_i] , main=textz ,
+      dens( zm[index,] , col=mypalette[k_i]  ,
             xlim=c(0,8) ,ylim=c(0,1.2) , cex.main=0.8 , xlab='' , yaxt='n' , xaxt='n') #post of all sims
       curve(dlnorm(x, meanlog=0, sdlog=1), from=0, to=10 , add=TRUE , lty=3 , col=1 ) #plot prior
+      title(main=textz , line=-1 , cex.main=0.8)
       #dens(exp(rnorm(1e7 , mean=0 , sd=1)) , lty=2 , add=TRUE)
       abline(v=F[f_i]) #line at true value
       seq_l <- seq(from=0 , to=0.35 , length=nsims) #vertical range to plot hpdi segs
@@ -39,11 +37,25 @@ for (f_i in 1:length(F)){
                   x1=f_hpdi[,order(f_med)[i]][2], y1=seq_l[i] , prob=0.5 , col.alpha("darkgrey" , alpha=1) , lty=1 , lw=.5)
       }
       points(f_med[order(f_med)] , seq_l , cex=0.3 ,  col=mypalette[k_i] , alpha=0.99 , pch=19)
-      
-      
     }
   }
 }
 
 
+########
+master <- read.csv("f_0.33_n_10_20_50_nsims_50_fits.csv") #load data
+master1 <- read.csv("f_0.33_n_100_200_500_nsims_50_fits.csv") #load data
+master2 <- rbind(master,master1)
+#master <- read.csv("f_0.33_n_1000_nsims_50_fits.csv")
+#master2 <- rbind(master,master1)
 
+#master2<- read.csv("f_3_n_nsims_50_fits.csv")
+master2 <- master2[,-1] # get rid of bs first column
+nsims <- ncol(master2) - 3 #number of sims
+
+pdf(file="f0.33_post_plots.pdf" , width=8, height=8)
+N <- sort(unique(master2$n))  ## pop size vector from data
+F <-sort(unique(master2$f))  ## strength of frequency dependence from data
+K <- sort(unique(master2$k))  ## number of options from data
+PlotDatShit(master2)
+dev.off()
