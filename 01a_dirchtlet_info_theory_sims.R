@@ -88,8 +88,62 @@ choices <- sample( 1:K , size=N , prob=pr_choose , replace=TRUE) #what are all t
 
 p_grid <- seq( from=0 , to=1 , length.out=1000 )
 prior <- rep(1,1000)
-likelihood <- dbinom( 3 , size=3 , prob=p_grid )
+likelihood <- dbinom( 6 , size=9 , prob=p_grid )
+dens(likelihood)
+plot(likelihood)
 posterior <- likelihood * prior
 posterior <- posterior / sum(posterior)
 samples <- sample( p_grid , size=1e4 , replace=TRUE , prob=posterior )
+dens(samples)
+
+#lets try here
+F <- 3
+K <- 2
+N <- 20
+p_grid <- seq( from=0.01 , to=5 , length.out=1000 )
+prior <- rep(1,1000)
+#likelihood is the hard part
+#what is probability that a values of f can produce this data.
+#simulate data with F=3
+si_freq <- c(0.4,0.6)
+pr_choose <- si_freq^F/sum(si_freq^F)
+choices <- sample( 1:K , size=N , prob=pr_choose , replace=TRUE) #what are all the values of F that could give rise to this data?
+choices
+
+
+
+f <- function(x) { exp(-x)/(1+exp(-x))^2 }
+i <-1:10000
+W <- array ( runif ( i, min = 0.00, max = 5 ), 10000 )
+X <- apply ( W , 1 , FUN = f )
+
+
+
+
+f <- function(x) { 
+  si_freq <- c(0.7,0.3)
+  (si_freq[1]^x)/sum(si_freq^x) 
+  }
+W <-  array( seq( from=0.01 , to=8 , length.out=1e5 ) )
+X <- apply ( W , 1 , FUN = f )
+dens(X) #all plausible values of Pr1
+plot(sort(X)) #all plausible values of Pr1
+
+post1 <- X/sum(X)
+dens(post1)
+samples <- sample( W , size=1e5 , replace=TRUE , prob=post1 )
+dens(samples)
+
+f <- function(x) { 
+  si_freq <- c(0.6,0.4)
+  (si_freq[1]^x)/sum(si_freq^x) 
+}
+W <-  array( seq( from=0.01 , to=8 , length.out=1e5 ) )
+X <- apply ( W , 1 , FUN = f )
+dens(X) #all plausible values of Pr1
+plot(sort(X)) #all plausible values of Pr1
+
+post1 <- X/sum(X)
+dens(post1)
+samples <- sample( W , size=1e5 , replace=TRUE , prob=post1 )
 dens(samples)
