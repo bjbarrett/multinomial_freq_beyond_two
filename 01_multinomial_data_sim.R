@@ -115,3 +115,76 @@ f_med_sort <- sort(apply(f_samples , 2 , median))
 points(f_med_sort , seq_l , cex=0.3)
 for(i in 1:n_sims) segments( x0=HPDI(f_samples[,f_med_order[i]])[[1]] , y0=seq_l[i] , x1=HPDI(f_samples[,f_med_order[i]])[[2]], y1=seq_l[i] )
 
+## lets write an alternative version where we simulate data across a bunch of conditions, then fit one model and get parameter estimates for each simulation
+#lets do 4 population sizes 5, 10 , 20 ,50, 100, 200 ,500 ,1000
+#fix f to 1/3 , 1 and 3
+#gnomes is 2, 3, 4, 5
+##simulate sl data
+N <- c( 10 , 25,  50, 100)  ## pop size / nobs
+F <- c(3) ## strength of frequency dependence
+K <- c(2,3,4) ## number of options
+n_sims <- 20
+
+#data sim
+therow <- 0
+data <- list()
+for (f_i in 1:length(F)){
+  for (n_i in 1:length(N)){
+    for (k_i in 1:length(K)){
+      ###blank list for data storage
+      for (sim in 1:n_sims){
+        set.seed(sim)
+        si_freq <- rdirichlet(1.1, alpha=rep(1,K[k_i]))
+        #si_freq[K[k_i]+1:max(K)] <- NA
+        s_temp <- rep(0,K[k_i])
+        s_temp <- si_freq[1:K[k_i]]^F[f_i]
+        pr_choose <- s_temp/sum(s_temp)
+        choice <- sample( 1:K[k_i] , size=N[n_i] , prob=pr_choose , replace=TRUE)
+        therow <- therow + 1
+        data$F[therow] <- F[f_i]
+        data$K[therow] <- K[k_i]
+        data$N[therow] <- N[n_i]
+        data$pr_choice[[therow]] <- pr_choose
+        data$freq_obs[[therow]] <- si_freq
+        data$choices[[therow]] <- choice
+      }#sim
+    } #f_i
+  } #n_i
+} #k_i
+
+
+data2 <- list(
+  num_sims=length(data$F) ,
+  K=data$K ,
+  N=data$N,
+  choice=data$choice,
+  s=data$pr_choice 
+)
+
+file_name <- 'freq_dep_log.stan'
+fit= stan( file = file_name,
+           data = data ,
+           iter = n_iter,
+           chains=n_chains,
+           cores=n_chains,
+           control=list(adapt_delta=0.999) ,
+           pars=c( "f" , "log_f" ),
+           refresh=100,
+           init=0,
+           seed=sim
+)
+
+str(master)
+
+
+dens(f_samples , show.HPDI=0.99999 , col="grey" , ylim=c(0,.7))
+curve(dlnorm(x, meanlog=0, sdlog=1), from=0, to=10 , add=TRUE , lty=2 , col=1)
+#for (i in 1:ncol(f_samples)) dens(f_samples[,i] , add=TRUE ,  col=col.alpha("red" , alpha=0.1))
+## ineed to get simulated data ans posteriors stored
+abline(v=1)
+str(f_samples)
+seq_l <- seq(from=0 , to=0.35 , length=n_sims)
+f_med_order <- order(apply(f_samples , 2 , median)) 
+f_med_sort <- sort(apply(f_samples , 2 , median)) 
+points(f_med_sort , seq_l , cex=0.3)
+for(i in 1:n_sims) segments( x0=HPDI(f_samples[,f_med_order[i]])[[1]] , y0=seq_l[i] , x1=HPDI(f_samples[,f_med_order[i]])[[2]], y1=seq_l[i] )
