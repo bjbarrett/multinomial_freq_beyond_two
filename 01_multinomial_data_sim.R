@@ -1,6 +1,8 @@
 library(rethinking)
 library(rstan)
 library(gtools)
+library(FSelector)
+
 options(mc.cores=3) 
 
 #prior predictive simulation of mode; for f
@@ -115,76 +117,246 @@ f_med_sort <- sort(apply(f_samples , 2 , median))
 points(f_med_sort , seq_l , cex=0.3)
 for(i in 1:n_sims) segments( x0=HPDI(f_samples[,f_med_order[i]])[[1]] , y0=seq_l[i] , x1=HPDI(f_samples[,f_med_order[i]])[[2]], y1=seq_l[i] )
 
-## lets write an alternative version where we simulate data across a bunch of conditions, then fit one model and get parameter estimates for each simulation
-#lets do 4 population sizes 5, 10 , 20 ,50, 100, 200 ,500 ,1000
-#fix f to 1/3 , 1 and 3
-#gnomes is 2, 3, 4, 5
-##simulate sl data
-N <- c( 10 , 25,  50, 100)  ## pop size / nobs
-F <- c(3) ## strength of frequency dependence
-K <- c(2,3,4) ## number of options
-n_sims <- 20
+###########simulate 2
+##dataframe
+N <- c(5,10,25,50,100)  ## pop size / nobs
+F <- c(1/3 , 1 , 3) ## strength of frequency dependence
+K <- c(2) ## number of options
+n_sims <- 100
 
 #data sim
-therow <- 0
-data <- list()
+therow <- thesim <- 1
+dsim <- data.frame(n_i=0 , choice=0 , s1=0 , s2=0 , s3=0 , s4=0 , sim_local=0 , f=0 ,n=0 , k=0 ,sim_global=0 , obs=0) #may have to modify if K gets bigger
+therow <- 1
 for (f_i in 1:length(F)){
-  for (n_i in 1:length(N)){
-    for (k_i in 1:length(K)){
-      ###blank list for data storage
+  for (k_i in 1:length(K)){
+    for (n_i in 1:length(N)){
       for (sim in 1:n_sims){
         set.seed(sim)
-        si_freq <- rdirichlet(1.1, alpha=rep(1,K[k_i]))
-        #si_freq[K[k_i]+1:max(K)] <- NA
+        si_freq <- rdirichlet(1, alpha=rep(1,K[k_i]))
+        si_freq[K[k_i]+1:max(K)] <- 0
         s_temp <- rep(0,K[k_i])
         s_temp <- si_freq[1:K[k_i]]^F[f_i]
         pr_choose <- s_temp/sum(s_temp)
-        choice <- sample( 1:K[k_i] , size=N[n_i] , prob=pr_choose , replace=TRUE)
-        therow <- therow + 1
-        data$F[therow] <- F[f_i]
-        data$K[therow] <- K[k_i]
-        data$N[therow] <- N[n_i]
-        data$pr_choice[[therow]] <- pr_choose
-        data$freq_obs[[therow]] <- si_freq
-        data$choices[[therow]] <- choice
+        for(num in 1:N[n_i]){
+          choice <- sample( 1:K[k_i] , size=1 , prob=pr_choose , replace=TRUE)
+          dsim[therow,] <- c( num , choice , si_freq[1] , si_freq[2] , si_freq[3] , si_freq[4] , sim ,F[f_i] ,N[n_i] , K[k_i] , thesim, therow)
+          therow <- therow + 1
+        }
+        thesim <- thesim + 1
       }#sim
     } #f_i
   } #n_i
 } #k_i
 
+dsim2 <- dsim
+write.csv(dsim2 , "sim100_k2_fthirds_n5102550100.csv")
 
 data2 <- list(
-  num_sims=length(data$F) ,
-  K=data$K ,
-  N=data$N,
-  choice=data$choice,
-  s=data$pr_choice 
+  K_i= dsim$k,
+  K=max(dsim$k) ,
+  N=nrow(dsim),
+  choice=dsim$choice,
+  s=dsim[,3:4],
+  sim=dsim$sim_global,
+  n_sim=max(dsim$sim_global)
 )
 
-file_name <- 'freq_dep_log.stan'
-fit= stan( file = file_name,
-           data = data ,
-           iter = n_iter,
-           chains=n_chains,
-           cores=n_chains,
-           control=list(adapt_delta=0.999) ,
-           pars=c( "f" , "log_f" ),
+
+file_name <- 'freq_dep_2.stan'
+fit2= stan( file = file_name,
+           data = data2 ,
+           iter = 2000,
+           chains=2,
+           cores=2,
+           control=list(adapt_delta=0.99) ,
+           pars=c( "log_f" , "f" ),
            refresh=100,
-           init=0,
-           seed=sim
+           init=1,
+           seed=44
+)
+post2 <- extract.samples(fit2)
+precis(fit2 , pars="f" , depth=2)
+
+###########simulate 3
+K <- c(3) ## number of options
+
+#data sim
+therow <- thesim <- 1
+dsim <- data.frame(n_i=0 , choice=0 , s1=0 , s2=0 , s3=0 , s4=0 , sim_local=0 , f=0 ,n=0 , k=0 ,sim_global=0 , obs=0) #may have to modify if K gets bigger
+therow <- 1
+for (f_i in 1:length(F)){
+  for (k_i in 1:length(K)){
+    for (n_i in 1:length(N)){
+      for (sim in 1:n_sims){
+        set.seed(sim)
+        si_freq <- rdirichlet(1, alpha=rep(1,K[k_i]))
+        si_freq[K[k_i]+1:max(K)] <- 0
+        s_temp <- rep(0,K[k_i])
+        s_temp <- si_freq[1:K[k_i]]^F[f_i]
+        pr_choose <- s_temp/sum(s_temp)
+        for(num in 1:N[n_i]){
+          choice <- sample( 1:K[k_i] , size=1 , prob=pr_choose , replace=TRUE)
+          dsim[therow,] <- c( num , choice , si_freq[1] , si_freq[2] , si_freq[3] , si_freq[4] , sim ,F[f_i] ,N[n_i] , K[k_i] , thesim, therow)
+          therow <- therow + 1
+        }
+        thesim <- thesim + 1
+      }#sim
+    } #f_i
+  } #n_i
+} #k_i
+
+dsim3 <- dsim
+write.csv(dsim3 , "sim100_k3_fthirds_n5102550100.csv")
+
+data3 <- list(
+  K_i= dsim$k,
+  K=max(dsim$k) ,
+  N=nrow(dsim),
+  choice=dsim$choice,
+  s=dsim[,3:5],
+  sim=dsim$sim_global,
+  n_sim=max(dsim$sim_global)
 )
 
-str(master)
+
+fit3= stan( file = file_name,
+            data = data3 ,
+            iter = 2000,
+            chains=2,
+            cores=2,
+            control=list(adapt_delta=0.99) ,
+            pars=c( "log_f" , "f" ),
+            refresh=100,
+            init=1,
+            seed=44
+)
+post3 <- extract.samples(fit3)
+precis(fit3 , pars="f" , depth=2)
+
+##########simulate K is 4
+K <- c(4) ## number of options
+
+#data sim
+therow <- thesim <- 1
+dsim <- data.frame(n_i=0 , choice=0 , s1=0 , s2=0 , s3=0 , s4=0 , sim_local=0 , f=0 ,n=0 , k=0 ,sim_global=0 , obs=0) #may have to modify if K gets bigger
+therow <- 1
+for (f_i in 1:length(F)){
+  for (k_i in 1:length(K)){
+    for (n_i in 1:length(N)){
+      for (sim in 1:n_sims){
+        set.seed(sim)
+        si_freq <- rdirichlet(1, alpha=rep(1,K[k_i]))
+        si_freq[K[k_i]+1:max(K)] <- 0
+        s_temp <- rep(0,K[k_i])
+        s_temp <- si_freq[1:K[k_i]]^F[f_i]
+        pr_choose <- s_temp/sum(s_temp)
+        for(num in 1:N[n_i]){
+          choice <- sample( 1:K[k_i] , size=1 , prob=pr_choose , replace=TRUE)
+          dsim[therow,] <- c( num , choice , si_freq[1] , si_freq[2] , si_freq[3] , si_freq[4] , sim ,F[f_i] ,N[n_i] , K[k_i] , thesim, therow)
+          therow <- therow + 1
+        }
+        thesim <- thesim + 1
+      }#sim
+    } #f_i
+  } #n_i
+} #k_i
+
+dsim4 <- dsim
+write.csv(dsim4 , "sim100_k4_fthirds_n5102550100.csv")
+
+data4 <- list(
+  K_i= dsim$k,
+  K=max(dsim$k) ,
+  N=nrow(dsim),
+  choice=dsim$choice,
+  s=dsim[,3:6],
+  sim=dsim$sim_global,
+  n_sim=max(dsim$sim_global)
+)
 
 
-dens(f_samples , show.HPDI=0.99999 , col="grey" , ylim=c(0,.7))
-curve(dlnorm(x, meanlog=0, sdlog=1), from=0, to=10 , add=TRUE , lty=2 , col=1)
-#for (i in 1:ncol(f_samples)) dens(f_samples[,i] , add=TRUE ,  col=col.alpha("red" , alpha=0.1))
-## ineed to get simulated data ans posteriors stored
-abline(v=1)
-str(f_samples)
-seq_l <- seq(from=0 , to=0.35 , length=n_sims)
-f_med_order <- order(apply(f_samples , 2 , median)) 
-f_med_sort <- sort(apply(f_samples , 2 , median)) 
-points(f_med_sort , seq_l , cex=0.3)
-for(i in 1:n_sims) segments( x0=HPDI(f_samples[,f_med_order[i]])[[1]] , y0=seq_l[i] , x1=HPDI(f_samples[,f_med_order[i]])[[2]], y1=seq_l[i] )
+file_name <- 'freq_dep_2.stan'
+fit4= stan( file = file_name,
+            data = data4 ,
+            iter = 2000,
+            chains=2,
+            cores=2,
+            control=list(adapt_delta=0.99) ,
+            pars=c( "log_f" , "f" ),
+            refresh=100,
+            init=1,
+            seed=44
+)
+post4 <- extract.samples(fit4)
+precis(fit4 , pars="f" , depth=2)
+tracerplot(fit4)
+
+save(dsim2,dsim3,dsim4,post2,post3,post4 , file="100simsK234.rdata")
+
+##lets export elements without dupes to link posteriors to sim conditions
+CalcEntropy<- function(x){
+  out = -sum(ifelse(x==0, 0 , x*log(x)) )
+  return(out)
+}
+
+drops <- c("choice","n_i","obs")
+
+d2 <- dsim2[ , !(names(dsim2) %in% drops)]
+d2 <- d2[!duplicated(d2), ]
+d2$entropy <- as.vector(apply(d2[,1:2] ,1, CalcEntropy))
+d2$post_f_med <- as.vector(apply(post2$f ,2, median))
+d2$loss <- abs(d2$f-d2$post_f_med)
+
+d3 <- dsim3[ , !(names(dsim3) %in% drops)]
+d3 <- d3[!duplicated(d3), ]
+d3$entropy <- as.vector(apply(d3[,1:3] ,1, CalcEntropy))
+d3$post_f_med <- as.vector(apply(post3$f ,2, median))
+d3$loss <- abs(d3$f-d3$post_f_med)
+
+
+d4 <- dsim4[ , !(names(dsim4) %in% drops)]
+d4 <- d4[!duplicated(d4), ]
+d4$entropy <- as.vector(apply(d4[,1:4] ,1, CalcEntropy))
+d4$post_f_med <- as.vector(apply(post4$f ,2, median))
+d4$loss <- abs(d4$f-d4$post_f_med)
+
+d <- rbind(d2,d3,d4)
+post <-  post2 + post3
+mypalette<-brewer.pal(3,"Dark2")
+
+plot(loss~entropy , data=d2, col=mypalette[1] , pch=1 , xlim=c(0 ,2) , ylim=c(0,5))
+points(loss~entropy , data=d3 , col=mypalette[2] , pch=1)
+points(loss~entropy , data=d4 , col=mypalette[3] , pch=1)
+
+plot((d2$entropy/max(d2$entropy)),d2$loss, col=mypalette[1] , pch=1 , xlim=c(0 ,1) , ylim=c(0,5))
+points((d3$entropy/max(d3$entropy)),d3$loss, col=mypalette[2] , pch=1)
+points((d4$entropy/max(d4$entropy)),d4$loss, col=mypalette[3] , pch=1)
+
+#loss is minimized at intermediate values of distributional entropy
+# there are more ways to realize intermediate values of entropy as K increases
+
+mypalette<-brewer.pal(3,"Dark2")
+K <- c(2,3,4)
+#lets plot where all the distributions are drawn form
+x <- rdirichlet(1e5, alpha=rep(1,K[1]))
+dens(x , col="white")
+for(i in 1:3){
+  x <- rdirichlet(1e5, alpha=rep(1,K[i]))
+  as.vector(apply(x ,1, CalcEntropy))
+  dens(x, add=TRUE , col=mypalette[i] , lw=3)
+  abline(v=mean(x),col=mypalette[i] , lty=3 )
+}
+legend("topright" , legend=K , fill=mypalette , title="K" , bty='n')
+
+x <- rdirichlet(1e5, alpha=rep(1,K[i]))
+x <- as.vector(apply(x ,1, CalcEntropy))
+dens(x , col="white" , ylim=c(0,6))
+for(i in 1:3){
+  x <- rdirichlet(1e5, alpha=rep(1.1,K[i]))
+  x <- as.vector(apply(x ,1, CalcEntropy))
+  dens(x/max(x), add=TRUE , col=mypalette[i] , lw=3)
+  #abline(v=mean(x),col=mypalette[i] , lty=3 )
+}
+legend("topleft" , legend=K , fill=mypalette , title="K" , bty='n')
+

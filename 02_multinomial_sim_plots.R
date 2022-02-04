@@ -178,3 +178,6 @@ for (f_i in 1:length(F)){
   }
 }
 mtext(side=1 ,"strength of frequency depndence", outer = TRUE, line=2.2 )
+
+
+#####################lets do new sims

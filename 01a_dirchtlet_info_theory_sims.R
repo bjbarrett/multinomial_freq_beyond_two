@@ -3,7 +3,7 @@ library(gtools)
 library(FSelector)
 #lets simulate a vector of length K that sums to 1 to generate random frequencies.
 # We chose an alpha of one to cover a variety of prob combons
-K <- c(2,3,4,5)
+K <- c(2,3,4)
 #x <- rdirichlet(n_sims*10000, alpha=rep(K,K[k_i]))
 mypalette<-brewer.pal(length(K),"Dark2")
 #lets plot where all the distributions are drawn form

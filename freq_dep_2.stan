@@ -1,25 +1,35 @@
 data {
-    int num_sims;              // num observations
-    int K[num_sims];              // num behaviors
-    int N[num_sims];              // num individuals
-    int choice[num_sims];        // techique chosen
-    real s[num_sims];        // observed number of ttimes observing behaviors
+    int K;              // num behaviors
+    int N;              // num observations in dataset
+    int choice[N];        // techique chosen
+    real s[N,K];        // observed number of ttimes observing behaviors
+    int sim[N];
+    int n_sim;
+    int K_i[N];
 }
 
 parameters {
-    vector<lower=0>[num_sims] f;                     
+    vector[n_sim] log_f;                     
 }
+
 
 model {
     real PrS;           // social learning Pr
-    vector[4] s_temp;   // social learning temp
+    vector[K] s_temp;   // social learning temp
+    vector[n_sim] f;
     //prior       
-    f ~ lognormal(0,1);
-    for ( i in 1:N[num_sims] ) {
-                for ( j in 1:K[num_sims] ) s_temp[j] = 0;
-                for ( j in 1:K[num_sims] ) s_temp[j] = pow(s[i,j],f[num_sims]);
+    log_f ~ normal(0,1);
+    for ( i in 1:N ) {
+                f[sim[i]]=exp(log_f[sim[i]]);
+                for ( j in 1:K_i[i] ) s_temp[j] = pow(s[i,j], f[sim[i]] );
                 PrS = s_temp[choice[i]]/sum(s_temp);
                 target += log( PrS ) ;         
      }//i  
 
 }//end of model
+generated quantities{
+    vector[n_sim] f;
+    for ( j in 1:n_sim ) {
+      f[j]=exp(log_f[j]);
+    }
+}
