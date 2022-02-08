@@ -181,3 +181,74 @@ mtext(side=1 ,"strength of frequency depndence", outer = TRUE, line=2.2 )
 
 
 #####################lets do new sims
+load("~/Documents/multinomial_freq_beyond_two/100simsK234.rdata")
+
+drops <- c("choice","n_i","obs")
+
+d2 <- dsim2[ , !(names(dsim2) %in% drops)]
+d2 <- d2[!duplicated(d2), ]
+d2$entropy <- as.vector(apply(d2[,1:2] ,1, CalcEntropy))
+d2$post_f_med <- as.vector(apply(post2$f ,2, median))
+d2$loss <- abs(d2$f-d2$post_f_med)
+
+d3 <- dsim3[ , !(names(dsim3) %in% drops)]
+d3 <- d3[!duplicated(d3), ]
+d3$entropy <- as.vector(apply(d3[,1:3] ,1, CalcEntropy))
+d3$post_f_med <- as.vector(apply(post3$f ,2, median))
+d3$loss <- abs(d3$f-d3$post_f_med)
+
+
+d4 <- dsim4[ , !(names(dsim4) %in% drops)]
+d4 <- d4[!duplicated(d4), ]
+d4$entropy <- as.vector(apply(d4[,1:4] ,1, CalcEntropy))
+d4$post_f_med <- as.vector(apply(post4$f ,2, median))
+d4$loss <- abs(d4$f-d4$post_f_med)
+
+mypalette<-brewer.pal(max(K),"BuPu")
+
+
+d <- rbind(d2,d3,d4)
+post_f <- cbind(post2$log_f, post3$log_f , post4$log_f)
+N <- sort(unique(d$n))  ## pop size vector from data
+F <- c(1/3 , 1 , 3)  ## strength of frequency dependence from data
+K <- sort(unique(d$k))  ## number of options from data
+mypalette<-brewer.pal(max(K),"Dark2")
+nsims <- 100
+
+plot.new()
+par( mfrow = c( length(N) , length(K) ) ) 
+par( oma=c(4,0,0,0) +.1)
+par(mar=c(0,0,0,0)+.1)
+for (f_i in 1:length(F)){
+  for (n_i in 1:length(N)){
+    for (k_i in 1:length(K)){
+      index <- which(d$f==F[f_i] & d$k==K[k_i] & d$n==N[n_i])
+      textz <- paste("k =",K[k_i],"; n =",N[n_i],"; f =",F[f_i] )   #title of plots
+      dens( post_f[,index] , col=mypalette[k_i] , xlim=c(-4,4) ,ylim=c(0,3) , xaxt='n' , yaxt='n') #post of all sims
+      #curve(dlnorm(x, meanlog=0, sdlog=1), from=0, to=10 , add=TRUE , lty=3 , col=1 ,ylab=FALSE ) #plot prior
+      title(main=textz , line=-.75 , cex.main=0.8)
+      dens(rnorm(1e7 , mean=0 , sd=1) , lty=2 , add=TRUE)
+      abline(v=log(f_i)) #line at true value
+      abline(v=0) #line at conform
+      seq_l <- seq(from=0 , to=2 , length=nsims) #vertical range to plot hpdi segs
+      #f_med_order <- order(apply(zm[index,] , 2 , median)) #order of model f medians by magnitude
+      f_med <- apply(post_f[,index] , 2 ,  median) #actual medians
+      f_hpdi <- apply(post_f[,index] , 2 , HPDI, prob=0.80) #actual medians
+      for (i in index) dens(post_f[,i] , add=TRUE ,  col=col.alpha(mypalette[k_i] , alpha=0.15))
+      # for(i in 1:nsims){
+      #   segments( x0=f_hpdi[,order(f_med)[i]][1] , y0=seq_l[i] , 
+      #             x1=f_hpdi[,order(f_med)[i]][2], y1=seq_l[i] , col=col.alpha("darkgrey" , alpha=.9) , lty=1 , lw=.5)
+      # }
+      points(f_med[order(f_med)] , seq_l , cex=0.3 ,  col=c(mypalette[k_i]) , pch=5)
+      
+      #dens( post_f[,index] , col=mypalette[k_i] , add=TRUE , lw=3) #post of all sims
+      axis(1, at=c(0,1,2,3,4,5,6,7,8) , cex.axis=0.8 , tck=0.01 , labels=FALSE )
+      axis(1, at=c(0,1,2,3,4,5,6,7,8) , cex.axis=0.8 , tck=-0.01 , labels=FALSE )
+      if(n_i==length(N)){
+        axis(1, at=c(0,1,2,3,4,5,6,7,8), labels=c(0,1,2,3,4,5,6,7,8) , cex.axis=0.8 )
+      }
+    }
+  }
+}
+mtext(side=1 ,"strength of frequency depndence", outer = TRUE, line=2.2 )
+
