@@ -10,7 +10,7 @@ mypalette<-brewer.pal(length(K),"Dark2")
 x <- rdirichlet(1e5, alpha=rep(1,K[1]))
 dens(x , col="white")
 for(i in 1:length(K)){
-  x <- rdirichlet(1e5, alpha=rep(1.2,K[i]))
+  x <- rdirichlet(1e5, alpha=rep(1,K[i]))
   dens(x, add=TRUE , col=mypalette[i] , lw=3)
   abline(v=mean(x),col=mypalette[i] , lty=3 )
 }

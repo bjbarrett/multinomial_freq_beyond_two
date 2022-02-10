@@ -181,7 +181,7 @@ mtext(side=1 ,"strength of frequency depndence", outer = TRUE, line=2.2 )
 
 
 #####################lets do new sims
-load("~/Documents/multinomial_freq_beyond_two/100simsK234.rdata")
+load("~/Documents/multinomial_freq_beyond_two/100simsK2345.rdata")
 
 drops <- c("choice","n_i","obs")
 
@@ -204,33 +204,39 @@ d4$entropy <- as.vector(apply(d4[,1:4] ,1, CalcEntropy))
 d4$post_f_med <- as.vector(apply(post4$f ,2, median))
 d4$loss <- abs(d4$f-d4$post_f_med)
 
-mypalette<-brewer.pal(max(K),"BuPu")
+d5 <- dsim5[ , !(names(dsim5) %in% drops)]
+d5 <- d5[!duplicated(d5), ]
+d5$entropy <- as.vector(apply(d5[,1:5] ,1, CalcEntropy))
+d5$post_f_med <- as.vector(apply(post5$f ,2, median))
+d5$loss <- abs(d5$f-d5$post_f_med)
+
+mypalette <- brewer.pal(max(K),"BuPu")
 
 
-d <- rbind(d2,d3,d4)
-post_f <- cbind(post2$log_f, post3$log_f , post4$log_f)
+d <- rbind(d2,d3,d4,d5)
+post_f <- cbind(post2$log_f, post3$log_f , post4$log_f , post5$log_f)
 N <- sort(unique(d$n))  ## pop size vector from data
-F <- c(1/3 , 1 , 3)  ## strength of frequency dependence from data
+F <-sort(unique(d$f))  ## strength of frequency dependence from data
 K <- sort(unique(d$k))  ## number of options from data
 mypalette<-brewer.pal(max(K),"Dark2")
 nsims <- 100
 
 plot.new()
-par( mfrow = c( length(N) , length(K) ) ) 
-par( oma=c(4,0,0,0) +.1)
-par(mar=c(0,0,0,0)+.1)
+
 for (f_i in 1:length(F)){
+  pdf(file = paste("posts_sims_f_",F[f_i],".pdf") , width = 8, height = 8) # The height of the plot in inches
+  par( mfrow = c( length(N) , length(K) ) ) 
+  par( oma=c(4,0,0,0) +.1)
+  par(mar=c(0,0,0,0)+.1)
   for (n_i in 1:length(N)){
     for (k_i in 1:length(K)){
       index <- which(d$f==F[f_i] & d$k==K[k_i] & d$n==N[n_i])
       textz <- paste("k =",K[k_i],"; n =",N[n_i],"; f =",F[f_i] )   #title of plots
-      dens( post_f[,index] , col=mypalette[k_i] , xlim=c(-4,4) ,ylim=c(0,3) , xaxt='n' , yaxt='n') #post of all sims
-      #curve(dlnorm(x, meanlog=0, sdlog=1), from=0, to=10 , add=TRUE , lty=3 , col=1 ,ylab=FALSE ) #plot prior
-      title(main=textz , line=-.75 , cex.main=0.8)
-      dens(rnorm(1e7 , mean=0 , sd=1) , lty=2 , add=TRUE)
-      abline(v=log(f_i)) #line at true value
-      abline(v=0) #line at conform
-      seq_l <- seq(from=0 , to=2 , length=nsims) #vertical range to plot hpdi segs
+      dens( post_f[,index] , col=mypalette[k_i] , xlim=c(-3,3) ,ylim=c(0,8) , xaxt='n' , yaxt='n') #post of all sims
+      title(main=textz , line=-.75 , cex.main=0.8 , bg="white")
+      abline(v=log(F[f_i]) , lw=2 , col=mypalette[k_i]) #line at true value
+      abline(v=0 , lty=3) #line at conform grenze
+      seq_l <- seq(from=0 , to=6 , length=nsims) #vertical range to plot hpdi segs
       #f_med_order <- order(apply(zm[index,] , 2 , median)) #order of model f medians by magnitude
       f_med <- apply(post_f[,index] , 2 ,  median) #actual medians
       f_hpdi <- apply(post_f[,index] , 2 , HPDI, prob=0.80) #actual medians
@@ -239,16 +245,21 @@ for (f_i in 1:length(F)){
       #   segments( x0=f_hpdi[,order(f_med)[i]][1] , y0=seq_l[i] , 
       #             x1=f_hpdi[,order(f_med)[i]][2], y1=seq_l[i] , col=col.alpha("darkgrey" , alpha=.9) , lty=1 , lw=.5)
       # }
+      dens(rnorm(1e7 , mean=0 , sd=1) , lty=2 , add=TRUE)
       points(f_med[order(f_med)] , seq_l , cex=0.3 ,  col=c(mypalette[k_i]) , pch=5)
       
       #dens( post_f[,index] , col=mypalette[k_i] , add=TRUE , lw=3) #post of all sims
-      axis(1, at=c(0,1,2,3,4,5,6,7,8) , cex.axis=0.8 , tck=0.01 , labels=FALSE )
-      axis(1, at=c(0,1,2,3,4,5,6,7,8) , cex.axis=0.8 , tck=-0.01 , labels=FALSE )
+      axis(1, at=c(-4:4) , cex.axis=0.8 , tck=0.01 , labels=FALSE )
+      axis(1, at=c(-4:4) , cex.axis=0.8 , tck=-0.01 , labels=FALSE )
       if(n_i==length(N)){
-        axis(1, at=c(0,1,2,3,4,5,6,7,8), labels=c(0,1,2,3,4,5,6,7,8) , cex.axis=0.8 )
+        axis(1, at=c(-4:4), labels=c(-4:4) , cex.axis=0.8 )
       }
     }
   }
+  mtext(side=1 ,"log(f)", outer = TRUE, line=2.2 )
 }
-mtext(side=1 ,"strength of frequency depndence", outer = TRUE, line=2.2 )
+
+dev.off()
+#plot(loss ~ entropy , data=d[d$f==3 & d$n==25 &  d$k==4,] , col=mypalette[2])
+
 
