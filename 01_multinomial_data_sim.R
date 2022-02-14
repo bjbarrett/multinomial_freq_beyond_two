@@ -286,7 +286,7 @@ fit5= stan( file = file_name,
 post5 <- extract.samples(fit5)
 precis(fit5 , pars="f" , depth=2)
 
-save(dsim2,dsim3,dsim4,dsim5,post2,post3,post4,post5 , file="100simsK2345.rdata")
+save(dsim2,dsim3,dsim4,dsim5,post2,post3,post4,post5 , file="100simsK2345_differentdistforagentspersim.rdata")
 
 ##lets export elements without dupes to link posteriors to sim conditions
 CalcEntropy<- function(x){
