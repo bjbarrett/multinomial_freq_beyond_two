@@ -143,5 +143,31 @@ for (f_i in 3:length(F)){
   mtext(side=1 ,"posterior density of log(f)", outer = TRUE, line=2.2 )
 }
 
-#plot % of posterior mass > 0 for each sim at each sample size, colors k , panels are samples sizez, point types correspond with type
+#plot % of posterior mass > 0 for each sim at each sample size, colors k , panels are samples sizes, point types correspond with type
+postposi <- function(x){sum( x > 0 ) / 2000 }
 
+
+d$perc_positive <- apply( post_f , 2 , postposi )
+d$sim_sd <- apply( post_f , 2 , sd )
+d$med_log_f <-  apply( post_f , 2 , median )
+
+
+for (n_i in 1:length(N)){
+  plot(0,0 , xlim=c(1,100) , ylim=c(0,1) , col="white" , xlab="simulation number" , ylab="propotion of positive posterior samples of log(f)" )
+  for(f_i in 1:length(F)){
+    for (k_i in 1:length(K)){
+      index <- which(d$f==F[f_i] & d$k==K[k_i] & d$n==N[n_i])
+      yy <- d$perc_positive[index]
+      points(1:100 , yy[order(yy)]  , cex=0.5 ,  col=c(mypalette[k_i]) , pch=f_i+15 , type="b")
+
+    }
+  }
+  textz <- paste("n =",N[n_i] )   #title of plots
+  title(main=textz , line=0.5 , cex.main=1 , bg="white")
+}
+
+str(d)
+
+plot(d$loss , col=mypalette[d$k])
+
+plot(perc_positive~med_log_f, data=d[d$f==3 & d$n==250,] , col=mypalette[d$k[d$f==3 & d$n==250]])
