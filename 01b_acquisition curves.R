@@ -1,6 +1,28 @@
 library(RColorBrewer)
 library(rethinking)
-#prior predictive simulation of model for 5 if k=4
+
+#prior predictive simulation of model; for k=2
+pdf(file = "prior_pred_acq_curve.pdf", width = 6, height = 6) # The height of the plot in inches
+
+rln <- exp(rnorm(1000, mean = 0, sd = 1))
+N1<- seq(from=0 , to=100 , by=1)
+N2<- 100-N1
+FreqN1B4 <- N1/(N1+N2)
+FreqN1After <- rep (0,100)
+plot(FreqN1B4,FreqN1B4 , ylim=c(0,1) , xlim=c(0,1) , ylab="frequency of trait after social learning" , xlab="frequency of trait before social learning",type="n" , bty="n" , cex.lab=1.5)
+for(i in 1:length(rln) ){
+  FreqN1After <- N1^rln[i]/(N1^rln[i]+N2^rln[i])
+  lines( FreqN1B4,FreqN1After,  col=col.alpha( "darksalmon" ,  alpha=0.05  )  , lwd=1)
+}
+FreqN1After <- N1^3/(N1^3+N2^3)
+lines( FreqN1B4,FreqN1After,  col=col.alpha("red" , alpha=0.4)  , lwd=3)
+FreqN1After <- N1^(1/3)/(N1^(1/3)+N2^(1/3))
+lines( FreqN1B4,FreqN1After,  col=col.alpha("red" , alpha=0.4) , lwd=3)
+
+abline(a=0 , b=1 , lty=2)
+
+dev.off()
+
 ##begin sims
 pdf(file = "multi_f_acq_curve.pdf", width = 6, height = 6) # The height of the plot in inches
 
