@@ -4,24 +4,6 @@ library(gtools)
 
 options(mc.cores=2) 
 
-##begin sims
-
-K <-3
-i<-1
-N1<- seq(from=0 , to=1000 , by=1)
-N2 <- N3 <- (1000-N1)/(K[i]-1)
-FreqN1B4 <- N1/(N1+N2+N3)
-FreqN1After <- rep (0,1000)
-plot(FreqN1B4,FreqN1B4 , ylim=c(0,1) , xlim=c(0,1) , ylab="frequency of trait after social learning" , xlab="frequency of trait before social learning",type="n" , bty="n" , cex.lab=1.5)
-# for(i in 1:length(rln) ){
-#   FreqN1After <- N1^rln[i]/(N1^rln[i]+N2^rln[i])
-#   lines( FreqN1B4,FreqN1After,  col=col.alpha( "darksalmon" ,  alpha=0.05  )  , lwd=1)
-# }
-FreqN1After <- N1^3/(N1^3+N2^3+N3^3)
-lines( FreqN1B4,FreqN1After,  col=col.alpha( "red"   )  , lwd=3)
-
-
-
 ###########simulate 2
 ##dataframe
 N <- c(5,10,25,50,100,250)  ## pop size / nobs
@@ -262,45 +244,43 @@ CalcEntropy<- function(x){
   return(out)
 }
 
-drops <- c("choice","n_i","obs")
+# drops <- c("choice","n_i","obs")
+# 
+# d2 <- dsim2[ , !(names(dsim2) %in% drops)]
+# d2 <- d2[!duplicated(d2), ]
+# d2$entropy <- as.vector(apply(d2[,1:2] ,1, CalcEntropy))
+# d2$post_f_med <- as.vector(apply(post2$f ,2, median))
+# d2$loss <- abs(d2$f-d2$post_f_med)
+# 
+# d3 <- dsim3[ , !(names(dsim3) %in% drops)]
+# d3 <- d3[!duplicated(d3), ]
+# d3$entropy <- as.vector(apply(d3[,1:3] ,1, CalcEntropy))
+# d3$post_f_med <- as.vector(apply(post3$f ,2, median))
+# d3$loss <- abs(d3$f-d3$post_f_med)
+# 
+# 
+# d4 <- dsim4[ , !(names(dsim4) %in% drops)]
+# d4 <- d4[!duplicated(d4), ]
+# d4$entropy <- as.vector(apply(d4[,1:4] ,1, CalcEntropy))
+# d4$post_f_med <- as.vector(apply(post4$f ,2, median))
+# d4$loss <- abs(d4$f-d4$post_f_med)
+# 
+# d <- rbind(d2,d3,d4)
 
-d2 <- dsim2[ , !(names(dsim2) %in% drops)]
-d2 <- d2[!duplicated(d2), ]
-d2$entropy <- as.vector(apply(d2[,1:2] ,1, CalcEntropy))
-d2$post_f_med <- as.vector(apply(post2$f ,2, median))
-d2$loss <- abs(d2$f-d2$post_f_med)
-
-d3 <- dsim3[ , !(names(dsim3) %in% drops)]
-d3 <- d3[!duplicated(d3), ]
-d3$entropy <- as.vector(apply(d3[,1:3] ,1, CalcEntropy))
-d3$post_f_med <- as.vector(apply(post3$f ,2, median))
-d3$loss <- abs(d3$f-d3$post_f_med)
-
-
-d4 <- dsim4[ , !(names(dsim4) %in% drops)]
-d4 <- d4[!duplicated(d4), ]
-d4$entropy <- as.vector(apply(d4[,1:4] ,1, CalcEntropy))
-d4$post_f_med <- as.vector(apply(post4$f ,2, median))
-d4$loss <- abs(d4$f-d4$post_f_med)
-
-d <- rbind(d2,d3,d4)
-post <-  post2 + post3
-mypalette<-brewer.pal(3,"Dark2")
-
-plot(loss~entropy , data=d2, col=mypalette[1] , pch=1 , xlim=c(0 ,2) , ylim=c(0,5))
-points(loss~entropy , data=d3 , col=mypalette[2] , pch=1)
-points(loss~entropy , data=d4 , col=mypalette[3] , pch=1)
-
-plot((d2$entropy/max(d2$entropy)),d2$loss, col=mypalette[1] , pch=1 , xlim=c(0 ,1) , ylim=c(0,5))
-points((d3$entropy/max(d3$entropy)),d3$loss, col=mypalette[2] , pch=1)
-points((d4$entropy/max(d4$entropy)),d4$loss, col=mypalette[3] , pch=1)
+# 
+# plot(loss~entropy , data=d2, col=mypalette[1] , pch=1 , xlim=c(0 ,2) , ylim=c(0,5))
+# points(loss~entropy , data=d3 , col=mypalette[2] , pch=1)
+# points(loss~entropy , data=d4 , col=mypalette[3] , pch=1)
+# 
+# plot((d2$entropy/max(d2$entropy)),d2$loss, col=mypalette[1] , pch=1 , xlim=c(0 ,1) , ylim=c(0,5))
+# points((d3$entropy/max(d3$entropy)),d3$loss, col=mypalette[2] , pch=1)
+# points((d4$entropy/max(d4$entropy)),d4$loss, col=mypalette[3] , pch=1)
 
 #loss is minimized at intermediate values of distributional entropy
 # there are more ways to realize intermediate values of entropy as K increases
 mypalette<-brewer.pal(4,"Dark2")
 
 pdf(file = "prob_dist_dirichlet.pdf", width = 6, height = 6) # The height of the plot in inches
-
 K <- c(2,3,4,5)
 #lets plot where all the distributions are drawn form
 x <- rdirichlet(1e6, alpha=rep(1,K[1]))
@@ -313,14 +293,14 @@ for(i in 1:4){
 legend("topright" , legend=K , fill=mypalette , title="K" , bty='n')
 
 dev.off()
-
-x <- rdirichlet(1e5, alpha=rep(1,K[i]))
-x <- as.vector(apply(x ,1, CalcEntropy))
-dens(x , col="white" , ylim=c(0,6) , xlim=c(0,1))
-for(i in 1:4){
-  x <- rdirichlet(1e6, alpha=rep(1,K[i]))
-  x <- as.vector(apply(x ,1, CalcEntropy))
-  dens(x/max(x), add=TRUE , col=mypalette[i] , lw=3)
-  #abline(v=mean(x),col=mypalette[i] , lty=3 )
-}
-legend("topleft" , legend=K , fill=mypalette , title="K" , bty='n')
+# 
+# x <- rdirichlet(1e5, alpha=rep(1,K[i]))
+# x <- as.vector(apply(x ,1, CalcEntropy))
+# dens(x , col="white" , ylim=c(0,6) , xlim=c(0,1))
+# for(i in 1:4){
+#   x <- rdirichlet(1e6, alpha=rep(1,K[i]))
+#   x <- as.vector(apply(x ,1, CalcEntropy))
+#   dens(x/max(x), add=TRUE , col=mypalette[i] , lw=3)
+#   #abline(v=mean(x),col=mypalette[i] , lty=3 )
+# }
+# legend("topleft" , legend=K , fill=mypalette , title="K" , bty='n')

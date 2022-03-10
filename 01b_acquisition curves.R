@@ -69,4 +69,4 @@ for(j in 1:length(diff)){
 }
 abline(a=0 , b=1 , lty=2)
 legend("bottomright" , legend=diff ,fill=mypalette , title="x for f(2)=x*f(3)" , bty='n' , inset=.03)
-
+dev.off()
