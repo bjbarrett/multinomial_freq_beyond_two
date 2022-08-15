@@ -1,20 +1,27 @@
 library(RColorBrewer)
 library(gtools)
 library(FSelector)
+library(rethinking)
 #lets simulate a vector of length K that sums to 1 to generate random frequencies.
 # We chose an alpha of one to cover a variety of prob combons
-K <- c(2,3,4)
+pdf(file = "prob_dist_dirichlet.pdf", width = 6, height = 6) # The height of the plot in inches
+par(mar=c(5,5,1,1) + 0.1)
+K <- c(2,3,4,5)
 #x <- rdirichlet(n_sims*10000, alpha=rep(K,K[k_i]))
-mypalette<-brewer.pal(length(K),"Dark2")
+mypalette <- c ( brewer.pal(9 , "Oranges")[6] ,
+                 brewer.pal(9 , "Greens")[6] ,
+                 brewer.pal(9 , "Blues")[6] ,
+                 brewer.pal(9 , "Purples")[6] )
 #lets plot where all the distributions are drawn form
-x <- rdirichlet(1e5, alpha=rep(1,K[1]))
-dens(x , col="white")
+x <- rdirichlet(1e6, alpha=rep(1,K[1]))
+dens(x , col="white" , xlab="probability" , ylab="density" , ylim=c(0,4) , cex.lab=1.5)
 for(i in 1:length(K)){
   x <- rdirichlet(1e5, alpha=rep(1,K[i]))
   dens(x, add=TRUE , col=mypalette[i] , lw=3)
   abline(v=mean(x),col=mypalette[i] , lty=3 )
 }
-legend("topright" , legend=K , fill=mypalette , title="K" , bty='n')
+legend("topright" , legend=K , fill=mypalette , title="k" , bty='n')
+dev.off()
 
 ##bumping up alpha centers estimated around 1/k
 x <- rdirichlet(n_sims*10000, alpha=rep(5,K[k_i]))
